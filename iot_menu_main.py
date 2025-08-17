@@ -18,7 +18,7 @@ class DeploySuccess(Message):
     pass
 
 
-class Basic_menu(VerticalScroll):
+class BasicMenu(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Button("Deploy", id="deploy")
         yield Button("Adopt", id="adopt")
@@ -27,7 +27,7 @@ class Basic_menu(VerticalScroll):
         yield Button("Advanced", id="advanced")
         yield Button("Exit", id="exit")
 
-class Advanced_menu(VerticalScroll):
+class AdvancedMenu(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Button("Pre-Flash Wemos D1 Mini")
         yield Button("Initialize Serial")
@@ -36,10 +36,11 @@ class Advanced_menu(VerticalScroll):
         yield Button("Shell Escape")
         yield Button("Shutdown/Poweroff")
         yield Button("Back", id="back")
-class Wifi_menu(VerticalScroll):
+
+class WifiMenu(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Button("Wifi system credentials setup - system.conf file", id="wifi_conf")
-        yield Button("Wifi network initial setup - OpenWRT rouyter")
+        yield Button("Wifi network initial setup - OpenWRT rouyter", id="openwrt")
         yield Button("Update Wifi Credentials on OpenWRT router")
         yield Button("Set-up wifi gateway on the Raspberry Pi")
         yield Button("Back", id="back")
@@ -56,7 +57,7 @@ class DeployScreen(Screen):
             yield Button("Yes, run deploy", id="deploy_logic")
             yield Button("No, go back", id="pop")
         @on(Button.Pressed, "#deploy_logic")
-        def deployment_logic(self)->None:
+        def deploymentLogic(self)->None:
             self.post_message(DeploySuccess())
             self.app.pop_screen()
 
@@ -78,15 +79,12 @@ class NewFolder(Screen):
         yield Button("Submit", id="submit_folder_name")
         yield Button("No, go back", id="pop")
     @on(Button.Pressed, "#submit_folder_name")
-    def folder_creating(self)-> None:
+    def folderCreating(self)-> None:
         ##todo: create folder logic
         self.post_message(DeploySuccess())
         self.app.pop_screen()
         
-class Wifi_setup_systemconf(Screen):
-    def __init__(self, start_path: str = None, **kwargs):
-            super().__init__(**kwargs)
-            self.current_path = Path(start_path or Path.cwd())
+class WifiSetupSystemconf(Screen):
     def compose(self) -> ComposeResult:
         yield Input(placeholder="Please choose a SSID for your gateway:", id="SSID")
         yield Input(placeholder="Please create a new password:", id="pass")
@@ -95,7 +93,7 @@ class Wifi_setup_systemconf(Screen):
         yield Button("Submit", id="wifi_systemconf_submit")
         yield Button("Go back", id="pop")
     @on(Button.Pressed, "#wifi_systemconf_submit")
-    def wifi_systemconf_logic(self)-> None:
+    def WifiSystemconfLogic(self)-> None:
         ssid=self.query_one("#SSID", Input).value
         password=self.query_one("#pass", Input).value
         retry=self.query_one("#new_pass", Input).value
@@ -104,12 +102,34 @@ class Wifi_setup_systemconf(Screen):
         self.post_message(DeploySuccess())
         self.app.pop_screen()
 
-class FileManager(App[None]):
+class OpenwrtSetup(Screen):
+    def compose(self) -> ComposeResult:
+        yield Label("!!!Make sure you are connected to your router via Ethernet or Wifi!!! " \
+        "Make sure your router has internet connection^" \
+        "This will create a file that pre configure your gateway credentials. Please" \
+        "define the SSID and password for your external WiFi-router running OpenWRT. This" \
+        "Wifi credentials will become your default settings." \
+        "Do you want to continue editing your Gateway's WiFi configuration?")
+        yield Input(placeholder="Please choose a SSID for your gateway:", id="ip_openwrt")
+        yield Button("Submit", id="openwrt_submit")
+        yield Button("Go back", id="pop")
+    @on(Button.Pressed, "#openwrt_submit")
+    def OpenWrtLogic(self)-> None:
+        ssid=self.query_one("#ip_openwrt", Input).value
+
+                    ##todo logic
+        self.post_message(DeploySuccess())
+        self.app.pop_screen()
+
+
+
+class IotMenu(App[None]):
     SCREENS= {
         "deploy": DeployScreen,
         "adopt": AdoptScreen,
         "folder": NewFolder,
-        "wifi_conf": Wifi_setup_systemconf
+        "wifi_conf": WifiSetupSystemconf,
+        "openwrt": OpenwrtSetup
 
     }
     CSS_PATH = "iot_menu.tcss"
@@ -134,7 +154,7 @@ class FileManager(App[None]):
             with Container(id="left_panel"):
                 yield Static(f"Current Path: {self.current_path}", id="path_display")
                 yield DirectoryTree(self.current_path, id="dir_tree")
-            yield Container(Basic_menu(), id="right_panel")       
+            yield Container(BasicMenu(), id="right_panel")       
         yield Footer()
 
     @on(DeploySuccess)
@@ -143,7 +163,7 @@ class FileManager(App[None]):
 
 
 
-    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf")
+    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf, #openwrt")
     def action_deployment_screen(self, event: Button.Pressed)-> None:
         self.push_screen(event.button.id)
 
@@ -151,20 +171,20 @@ class FileManager(App[None]):
 
     @on(Button.Pressed, "#advanced")
     def action_remove_Basic_menu_and_add_Advanced(self)-> None:
-        new_Advanced_menu=Advanced_menu()
+        new_Advanced_menu=AdvancedMenu()
         self.query_one("#right_panel").remove_children()
         self.query_one("#right_panel").mount(new_Advanced_menu)
 
 
     @on(Button.Pressed, "#back")
     def action_remove_menu_and_add_Basic(self)-> None:
-        new_Basic_menu=Basic_menu()
+        new_Basic_menu=BasicMenu()
         self.query_one("#right_panel").remove_children()
         self.query_one("#right_panel").mount(new_Basic_menu)
 
     @on(Button.Pressed, "#wifi")
     def action_remove_Basic_menu_and_add_wifi(self)-> None:
-        new_Wifi_menu=Wifi_menu()
+        new_Wifi_menu=WifiMenu()
         self.query_one("#right_panel").remove_children()
         self.query_one("#right_panel").mount(new_Wifi_menu)
 
@@ -212,4 +232,4 @@ class FileManager(App[None]):
 if __name__ == "__main__":
     import sys
     start = sys.argv[1] if len(sys.argv) > 1 else None
-    FileManager(start_path=start).run()
+    IotMenu(start_path=start).run()

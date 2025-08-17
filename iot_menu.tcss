@@ -27,5 +27,13 @@ Screen {
     width: 100%;
     height: auto;
 
-}
 
+}
+Label{
+    background: #202020;
+    color: white;
+    padding: 1 2;
+    border: solid gray;
+    height: auto;
+    width: 80%;
+}
