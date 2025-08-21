@@ -1,0 +1,2 @@
+[app.Calculator]
+command = "python iot_menu_main.py"
