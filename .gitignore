@@ -10,14 +10,6 @@ venv/
 ENV/
 .venv.bak/
 
-# Textual (logs, screenshots, recordings)
-.textual/
-.textual.log
-textual.log
-*.svg
-*.png
-*.gif
-*.mp4
 
 # IDE / Editor settings
 .vscode/
