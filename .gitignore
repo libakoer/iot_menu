@@ -24,3 +24,5 @@ textual.log
 .idea/
 *.swp
 *.swo
+
+.gitignore
