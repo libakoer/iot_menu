@@ -132,7 +132,7 @@ class IotMenu(App[None]):
         "openwrt": OpenwrtSetup
 
     }
-    CSS_PATH = "iot_menu.tcss"
+    CSS_PATH = "tcss/iot_menu.tcss"
     """
     A Textual-based file manager without directory history.
     - Arrow keys to move

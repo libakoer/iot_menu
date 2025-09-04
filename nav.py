@@ -1,15 +1,12 @@
-from textual.app import App
-from textual.widgets import Welcome, DirectoryTree
+import subprocess
 
+# Käivitame bash skripti (näiteks "../deploy")
+result = subprocess.run(
+    ["bash", "../deploy"],   # või ["sh", "../deploy"]
+    capture_output=True,
+    text=True
+)
 
-class WelcomeApp(App):
-    def on_key(self) -> None:
-        self.mount(DirectoryTree("./"))
-
-    def on_button_pressed(self) -> None:
-        self.exit()
-
-
-if __name__ == "__main__":
-    app = WelcomeApp()
-    app.run()
+print("STDOUT:", result.stdout)
+print("STDERR:", result.stderr)
+print("Return code:", result.returncode)

@@ -14,6 +14,7 @@ from screens.NewFolderScreen import NewFolder
 from screens.AdoptScreen import AdoptScreen
 from screens.WifiSetupSystemconfScreen import WifiSetupSystemconf
 from screens.OpenwrtSetupScreen import OpenwrtSetup
+from screens.FailedScreen import Failed
 
 
 
@@ -23,6 +24,7 @@ from menus.WifiMenu import WifiMenu
 
 
 from messages.DeploySuccessMessage import DeploySuccess
+from messages.DeployFailedMessage import DeployFailed
 
 
 class IotMenu(App[None]):
@@ -60,8 +62,11 @@ class IotMenu(App[None]):
         yield Footer()
 
     @on(DeploySuccess)
-    def sucess_page(self)-> None:
-        self.push_screen(Success())
+    def sucess_page(self, message:DeploySuccess)-> None:
+        self.push_screen(Success(message.message))
+    @on(DeployFailed)
+    def failed_page(self, error:DeployFailed )-> None:
+        self.push_screen(Failed(error.error, error.code))
 
 
 
