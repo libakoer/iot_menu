@@ -59,10 +59,13 @@ class IotMenu(App[None]):
 
     @on(DeploySuccess)
     def sucess_page(self, message: DeploySuccess) -> None:
+        self.pop_screen()
+        self.pop_screen()
         self.push_screen(Success(message.message))
 
     @on(DeployFailed)
     def failed_page(self, error: DeployFailed) -> None:
+        self.pop_screen()
         self.push_screen(Failed(error.error, error.code))
 
     @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt")
