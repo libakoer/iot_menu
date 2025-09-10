@@ -3,7 +3,7 @@ from textual.screen import Screen
 from textual.app import ComposeResult
 from messages.DeploySuccessMessage import DeploySuccess
 from textual import events, on
-from script_activation_logic.Wifi_setup_systemconf_script import deploy_script
+from script_activation_logic.Wifi_setup_systemconf_script import deploy_script, setup_conf
 from pathlib import Path
 from screens.LoadingScreen import LoadingScreen
 from messages.DeployFailedMessage import DeployFailed
@@ -34,6 +34,7 @@ class WifiSetupSystemconf(Screen):
         self.app.push_screen(LoadingScreen())
         def task():
             answer =deploy_script(self.current_path,ssid,password,retry,ip,gateway)
+            setup_conf(self.current_path)
             if answer[1] !="":
                     self.post_message(DeployFailed(answer[1], answer[2]))
             else:

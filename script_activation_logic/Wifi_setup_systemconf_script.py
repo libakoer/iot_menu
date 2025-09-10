@@ -42,3 +42,13 @@ def deploy_script(path: Path, ssid, password, retry, ip, gateway):
 
     process.wait()
     return "".join(stdout_lines), "".join(stderr_lines), process.returncode
+
+def setup_conf(path: Path):
+    script = Path(__file__).parent.parent.parent / "setup_systemconf" 
+    result = subprocess.run(
+        ["bash", str(script)],
+        capture_output=True,
+        text=True,
+        cwd=path
+    )
+    return [result.stdout, result.stderr, result.returncode]
