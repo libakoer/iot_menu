@@ -2,15 +2,15 @@ import subprocess
 from pathlib import Path
 
 
-def run_adopt_scan() -> list[str]:
+def run_adopt_scan(path: Path) -> list[str]:
     """Käivita deploy/adopt skript ja tagasta parstitud node'ide list."""
-
     dongle = Path(__file__).parent.parent.parent/"dongle"
     scan = Path(__file__).parent.parent.parent/"scan"
     result = subprocess.run(
             [str(dongle), str(scan)],
             capture_output=True,
             text=True,
+            cwd=path
         )
     saved_output = result.stdout.splitlines()
 

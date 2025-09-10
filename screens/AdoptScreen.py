@@ -3,6 +3,7 @@ from textual.widgets import Static, ListView, ListItem, Label, Button
 from textual.reactive import reactive
 from textual.screen import Screen
 from script_activation_logic.Adopt_script import run_adopt_scan, adopt_node
+from pathlib import Path
 
 
 class AdoptScreen(Screen):
@@ -10,7 +11,9 @@ class AdoptScreen(Screen):
     saved_output = reactive([])
     start_index = reactive(0)
     max_entries = 5
-
+    def __init__(self, current_path: str = None, **kwargs):
+            super().__init__(**kwargs)
+            self.current_path = Path(current_path or Path.cwd())
     def compose(self) -> ComposeResult:
         yield Static("Adoption tool", id="title")
         yield Static("", id="status")
@@ -25,7 +28,7 @@ class AdoptScreen(Screen):
         status.update("\nScanning for adoptable nodes...")
 
         try:
-            ap_list, saved_output = run_adopt_scan()
+            ap_list, saved_output = run_adopt_scan(self.current)
         except:
             ap_list=[]
             saved_output=[]
