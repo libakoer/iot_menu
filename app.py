@@ -62,6 +62,15 @@ class IotMenu(App[None]):
             "upgrade": lambda: UpgradeIot(),
             "web_starter": lambda: WebStarter()
         }
+    async def stop_backend(self):
+        if self.web_starter:
+            self.web_starter.terminate()
+            try:
+                await asyncio.wait_for(self.web_starter.wait(), timeout=3)
+            except asyncio.TimeoutError:
+                self.web_starter.kill()
+            print("Web starter terminated")
+            self.web_starter = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -125,16 +134,7 @@ class IotMenu(App[None]):
             self.web_starter.terminate()
             self.web_starter = None
         self.exit()
-    @on(Button.Pressed,"#web")
-    async def web_starter_logic(self)->None:
-        self.app.push_screen(LoadingScreen())
-        if self.web_starter is None:
-            self.post_message(DeploySuccess("Web starter will start running shortly"))
-            self.web_starter = await asyncio.create_subprocess_exec(
-                    "web_starter",
-                    stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL,
-                )
+
 
         
     @on(Button.Pressed, "#openwrt_submit")
@@ -175,6 +175,7 @@ class IotMenu(App[None]):
         self.dir_tree.reload()
     def on_unmount(self):
         # Kui ekraan sulgub, lõpetame protsessi
+        self.stop_backend()
         if self.web_starter:
             self.web_starter.terminate()
             self.web_starter = None
