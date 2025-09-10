@@ -17,6 +17,8 @@ from screens.pre_flash_wemos_d1_mini import WemosPre
 from screens.initialize_serial import InitializeSerial
 from screens.system_template_screen import SystemTemplate
 from screens.upgrade_screen import UpgradeIot
+from screens.web_starter_screen import WebStarter
+from screens.loading_screen import LoadingScreen
 
 from menus.basic_menu import BasicMenu
 from menus.advanced_menu import AdvancedMenu
@@ -27,6 +29,7 @@ from messages.deploy_success_message import DeploySuccess
 from messages.deploy_failed_message import DeployFailed
 
 from script_activation_logic.find_router_ip_logic import router_ip
+import asyncio
 
 class IotMenu(App[None]):
     """
@@ -45,8 +48,8 @@ class IotMenu(App[None]):
     def __init__(self, start_path: str = None, **kwargs):
         super().__init__(**kwargs)
         self.current_path = Path(start_path or Path.cwd())
-
         # SCREENS nüüd funktsioonid, et saaks path kaasa anda
+        self.web_starter=None
         self.SCREENS = {
             "deploy": lambda: DeployScreen(self.current_path),
             "adopt": lambda: AdoptScreen(self.current_path),
@@ -56,7 +59,8 @@ class IotMenu(App[None]):
             "wemos": lambda: WemosPre(),
             "initialize": lambda: InitializeSerial(self.current_path),
             "new_system_template": lambda: SystemTemplate(self.current_path),
-            "upgrade": lambda: UpgradeIot()
+            "upgrade": lambda: UpgradeIot(),
+            "web_starter": lambda: WebStarter()
         }
 
     def compose(self) -> ComposeResult:
@@ -82,7 +86,7 @@ class IotMenu(App[None]):
         self.pop_screen()
         self.push_screen(Failed(error.error, error.code))
 
-    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt,#wemos,#initialize,#new_system_template,#upgrade")
+    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt,#wemos,#initialize,#new_system_template,#upgrade,#web_starter")
     def action_deployment_screen(self, event: Button.Pressed) -> None:
         screen_factory = self.SCREENS.get(event.button.id)
         if screen_factory:
@@ -117,7 +121,21 @@ class IotMenu(App[None]):
 
     @on(Button.Pressed, "#exit")
     def exit_the_app(self) -> None:
+        if self.web_starter:
+            self.web_starter.terminate()
+            self.web_starter = None
         self.exit()
+    @on(Button.Pressed,"#web")
+    async def web_starter_logic(self)->None:
+        self.app.push_screen(LoadingScreen())
+        if self.web_starter is None:
+            self.post_message(DeploySuccess("Web starter will start running shortly"))
+            self.web_starter = await asyncio.create_subprocess_exec(
+                    "web_starter",
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL,
+                )
+
         
     @on(Button.Pressed, "#openwrt_submit")
     def open_wrt_logic(self)-> None:
@@ -155,6 +173,11 @@ class IotMenu(App[None]):
         self.path_display.update(f"Current Path: {self.current_path}")
         self.dir_tree.path = self.current_path
         self.dir_tree.reload()
+    def on_unmount(self):
+        # Kui ekraan sulgub, lõpetame protsessi
+        if self.web_starter:
+            self.web_starter.terminate()
+            self.web_starter = None
 
 
 if __name__ == "__main__":

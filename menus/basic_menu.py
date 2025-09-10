@@ -9,4 +9,5 @@ class BasicMenu(VerticalScroll):
         yield Button("Wifi Network Setup", id="wifi")
         yield Button("Create New Folder",id="folder")
         yield Button("Advanced", id="advanced")
+        yield Button("Web starter",id="web_starter")
         yield Button("Exit", id="exit")
