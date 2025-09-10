@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 class AdvancedMenu(VerticalScroll):
     def compose(self) -> ComposeResult:
         yield Button("Pre-Flash Wemos D1 Mini", id="wemos")
-        yield Button("Initialize Serial")
+        yield Button("Initialize Serial", id="initialize")
         yield Button("Upgrade")
         yield Button("Create New System")
         yield Button("Shell Escape")
