@@ -13,7 +13,7 @@ from screens.wifi_setup_system_conf_screen import WifiSetupSystemconf
 from screens.open_wrt_setup_screen import OpenwrtSetup
 from screens.failed_screen import Failed
 from screens.open_wrt_router_screen import OpenWrtRouterIp
-
+from screens.pre_flash_wemos_d1_mini import WemosPre
 
 from menus.basic_menu import BasicMenu
 from menus.advanced_menu import AdvancedMenu
@@ -50,6 +50,7 @@ class IotMenu(App[None]):
             "folder": lambda: NewFolder(self.current_path),
             "wifi_conf": lambda: WifiSetupSystemconf(False,self.current_path),
             "openwrt": lambda: OpenwrtSetup(self.current_path),
+            "wemos": lambda: WemosPre(self.current_path)
         }
 
     def compose(self) -> ComposeResult:
@@ -75,7 +76,7 @@ class IotMenu(App[None]):
         self.pop_screen()
         self.push_screen(Failed(error.error, error.code))
 
-    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt")
+    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt,#wemos")
     def action_deployment_screen(self, event: Button.Pressed) -> None:
         screen_factory = self.SCREENS.get(event.button.id)
         if screen_factory:
