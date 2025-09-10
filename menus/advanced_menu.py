@@ -7,7 +7,7 @@ class AdvancedMenu(VerticalScroll):
         yield Button("Pre-Flash Wemos D1 Mini", id="wemos")
         yield Button("Initialize Serial", id="initialize")
         yield Button("Upgrade")
-        yield Button("Create New System")
+        yield Button("Create New System", id="new_system_template")
         yield Button("Shell Escape")
         yield Button("Shutdown/Poweroff")
         yield Button("Back", id="back")
