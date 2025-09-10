@@ -12,6 +12,8 @@ from screens.adopt_screen import AdoptScreen
 from screens.wifi_setup_system_conf_screen import WifiSetupSystemconf
 from screens.open_wrt_setup_screen import OpenwrtSetup
 from screens.failed_screen import Failed
+from screens.open_wrt_router_screen import OpenWrtRouterIp
+
 
 from menus.basic_menu import BasicMenu
 from menus.advanced_menu import AdvancedMenu
@@ -21,6 +23,7 @@ from messages.refresh_screen import Refresh
 from messages.deploy_success_message import DeploySuccess
 from messages.deploy_failed_message import DeployFailed
 
+from script_activation_logic.find_router_ip_logic import router_ip
 
 class IotMenu(App[None]):
     """
@@ -45,7 +48,7 @@ class IotMenu(App[None]):
             "deploy": lambda: DeployScreen(self.current_path),
             "adopt": lambda: AdoptScreen(self.current_path),
             "folder": lambda: NewFolder(self.current_path),
-            "wifi_conf": lambda: WifiSetupSystemconf(self.current_path),
+            "wifi_conf": lambda: WifiSetupSystemconf(False,self.current_path),
             "openwrt": lambda: OpenwrtSetup(self.current_path),
         }
 
@@ -99,10 +102,21 @@ class IotMenu(App[None]):
     @on(Button.Pressed, "#pop")
     def pop_screen_new(self) -> None:
         self.pop_screen()
+    
+    @on(Button.Pressed, "#pop2")
+    def pop_screen_new_2(self) -> None:
+        self.pop_screen()
+        self.pop_screen()
 
     @on(Button.Pressed, "#exit")
     def exit_the_app(self) -> None:
         self.exit()
+        
+    @on(Button.Pressed, "#openwrt_submit")
+    def open_wrt_logic(self)-> None:
+            info=router_ip(self.current_path)
+            self.pop_screen()
+            self.push_screen(OpenWrtRouterIp(info,self.current_path))
 
     def on_mount(self) -> None:
         self.dir_tree = self.query_one("#dir_tree", DirectoryTree)

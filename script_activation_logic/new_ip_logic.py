@@ -1,11 +1,10 @@
 import subprocess
 from pathlib import Path
 
-def deploy_script(path: Path, ssid, password, retry, ip, gateway):
-    script = Path(__file__).parent.parent.parent / "wifi_setup_systemconf"
-
+def router_ip(path: Path, ip):
+    script = Path(__file__).parent.parent.parent / "check_router_ip"  # võtab deploy 2 taset üles praegusest failist
     # Kõik sisendid järjekorras
-    inputs = [ssid, password, retry, "yes", gateway, ip]
+    inputs = [ "no",ip]
 
     # Sisendi string ühe korraga
     input_data = "\n".join(inputs) + "\n"
