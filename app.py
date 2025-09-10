@@ -5,20 +5,21 @@ from textual.binding import Binding
 from textual import events, on
 from textual.containers import Container, Horizontal
 
-from screens.SucessScreen import Success
-from screens.DeployScreen import DeployScreen
-from screens.NewFolderScreen import NewFolder
-from screens.AdoptScreen import AdoptScreen
-from screens.WifiSetupSystemconfScreen import WifiSetupSystemconf
-from screens.OpenwrtSetupScreen import OpenwrtSetup
-from screens.FailedScreen import Failed
+from screens.sucess_screen import Success
+from screens.deploy_screen import DeployScreen
+from screens.new_folder_screen import NewFolder
+from screens.adopt_screen import AdoptScreen
+from screens.wifi_setup_system_conf_screen import WifiSetupSystemconf
+from screens.open_wrt_setup_screen import OpenwrtSetup
+from screens.failed_screen import Failed
 
-from menus.BasicMenu import BasicMenu
-from menus.AdvancedMenu import AdvancedMenu
-from menus.WifiMenu import WifiMenu
+from menus.basic_menu import BasicMenu
+from menus.advanced_menu import AdvancedMenu
+from menus.wifi_menu import WifiMenu
+from messages.refresh_screen import Refresh
 
-from messages.DeploySuccessMessage import DeploySuccess
-from messages.DeployFailedMessage import DeployFailed
+from messages.deploy_success_message import DeploySuccess
+from messages.deploy_failed_message import DeployFailed
 
 
 class IotMenu(App[None]):
@@ -62,6 +63,9 @@ class IotMenu(App[None]):
         self.pop_screen()
         self.pop_screen()
         self.push_screen(Success(message.message))
+    @on(Refresh)
+    def refresh_screen(self)->None:
+        self._load_path(self.current_path)
 
     @on(DeployFailed)
     def failed_page(self, error: DeployFailed) -> None:

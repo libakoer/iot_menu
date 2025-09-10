@@ -1,14 +1,14 @@
 from textual.widgets import Button, Input
 from textual.screen import Screen
 from textual.app import ComposeResult
-from messages.DeploySuccessMessage import DeploySuccess
+from messages.deploy_success_message import DeploySuccess
 from textual import events, on
-from script_activation_logic.Wifi_setup_systemconf_script import deploy_script, setup_conf
+from script_activation_logic.wifi_setup_systemconf_script import deploy_script, setup_conf
 from pathlib import Path
-from screens.LoadingScreen import LoadingScreen
-from messages.DeployFailedMessage import DeployFailed
-from messages.DeploySuccessMessage import DeploySuccess
-import threading
+from screens.loading_screen import LoadingScreen
+from messages.deploy_failed_message import DeployFailed
+from messages.deploy_success_message import DeploySuccess
+from threading import Thread
 
 
 class WifiSetupSystemconf(Screen):
@@ -25,7 +25,7 @@ class WifiSetupSystemconf(Screen):
         yield Button("Submit", id="wifi_systemconf_submit")
         yield Button("Go back", id="pop")
     @on(Button.Pressed, "#wifi_systemconf_submit")
-    def WifiSystemconfLogic(self)-> None:
+    def wifi_systemconf_logic(self)-> None:
         ssid=self.query_one("#SSID", Input).value
         password=self.query_one("#pass", Input).value
         retry=self.query_one("#new_pass", Input).value
@@ -40,4 +40,4 @@ class WifiSetupSystemconf(Screen):
             else:
                 self.post_message(DeploySuccess(answer[0]))
 
-        threading.Thread(target=task, daemon=True).start()
+        Thread(target=task, daemon=True).start()

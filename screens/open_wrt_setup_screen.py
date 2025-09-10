@@ -2,7 +2,7 @@ from textual.widgets import Label, Button, Input
 from textual.screen import Screen
 from textual.app import ComposeResult
 from pathlib import Path
-from messages.DeploySuccessMessage import DeploySuccess
+from messages.deploy_success_message import DeploySuccess
 from textual import events, on
 
 
@@ -18,7 +18,7 @@ class OpenwrtSetup(Screen):
         yield Button("Submit", id="openwrt_submit")
         yield Button("Go back", id="pop")
     @on(Button.Pressed, "#openwrt_submit")
-    def OpenWrtLogic(self)-> None:
+    def open_wrt_logic(self)-> None:
         ssid=self.query_one("#ip_openwrt", Input).value
 
                     ##todo logic

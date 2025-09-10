@@ -3,11 +3,11 @@ from textual.widgets import Label, Button, Header
 from textual.screen import Screen
 from textual.app import ComposeResult
 from pathlib import Path
-from messages.DeploySuccessMessage import DeploySuccess
+from messages.deploy_success_message import DeploySuccess
 from textual import events, on
-from script_activation_logic.Deploy_script import deploy_script
-from messages.DeployFailedMessage import DeployFailed
-from screens.LoadingScreen import LoadingScreen
+from script_activation_logic.deploy_script import deploy_script
+from messages.deploy_failed_message import DeployFailed
+from screens.loading_screen import LoadingScreen
 class DeployScreen(Screen):
         def __init__(self, current_path: str = None, **kwargs):
             super().__init__(**kwargs)
@@ -20,7 +20,7 @@ class DeployScreen(Screen):
             yield Button("Yes, run deploy", id="deploy_logic")
             yield Button("No, go back", id="pop")
         @on(Button.Pressed, "#deploy_logic")
-        def deploymentLogic(self)->None:
+        def deployment_logic(self)->None:
             self.app.push_screen(LoadingScreen())
 
             def task():

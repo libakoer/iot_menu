@@ -1,6 +1,5 @@
 import subprocess
 from pathlib import Path
-import time
 
 def deploy_script(path: Path, ssid, password, retry, ip, gateway):
     script = Path(__file__).parent.parent.parent / "wifi_setup_systemconf"
