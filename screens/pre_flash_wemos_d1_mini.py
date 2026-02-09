@@ -29,7 +29,7 @@ class WemosPre(Screen):
     async def stream_script(self):
         log: Log = self.query_one("#log")
 
-        script = Path(__file__).parent.parent.parent / "pre_flash_wemos"
+        script = Path(__file__).parent.parent.parent.parent / "bin/pre_flash_wemos"
         process = await asyncio.create_subprocess_exec(
             "bash", str(script),
             stdout=asyncio.subprocess.PIPE,

@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 def deploy_script(path: Path, name):
-    script = Path(__file__).parent.parent.parent / "create_node_template"  # võtab deploy 2 taset üles praegusest failist
+    script = Path(__file__).parent.parent.parent.parent / "bin/create_node_template"  # võtab deploy 2 taset üles praegusest failist
     result = subprocess.run(
         ["bash", str(script),name],
         capture_output=True,

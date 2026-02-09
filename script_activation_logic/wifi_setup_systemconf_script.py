@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 def deploy_script(path: Path, ssid, password, retry, ip, gateway):
-    script = Path(__file__).parent.parent.parent / "wifi_setup_systemconf"
+    script = Path(__file__).parent.parent.parent.parent / "bin/wifi_setup_systemconf"
 
     # Kõik sisendid järjekorras
     inputs = [ssid, password, retry, "yes", gateway, ip]

@@ -20,7 +20,7 @@ class OpenWrtRouterIp(Screen):
         yield Button("Correct ip", id="openwrt_wifi")
         yield Input("New ip", id="new_ip_I")
         yield Button("Change ip", id="new_ip")
-        yield Button("Go back to Menu", id="pop2")
+        yield Button("Go back to Menu", id="pop")
     @on(Button.Pressed, "#new_ip")
     def add_new_ip(self) -> None:
         self.app.push_screen(LoadingScreen)

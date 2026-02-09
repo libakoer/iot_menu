@@ -29,7 +29,7 @@ class InitializeSerial(Screen):
     async def stream_script(self):
         log: Log = self.query_one("#log")
 
-        script = Path(__file__).parent.parent.parent / "initialize"
+        script = Path(__file__).parent.parent.parent.parent / "bin/initialize"
         process = await asyncio.create_subprocess_exec(
             "bash", str(script),"serial",
             stdout=asyncio.subprocess.PIPE,

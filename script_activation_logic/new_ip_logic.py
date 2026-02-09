@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 def router_ip(path: Path, ip):
-    script = Path(__file__).parent.parent.parent / "check_router_ip"  # võtab deploy 2 taset üles praegusest failist
+    script = Path(__file__).parent.parent.parent.parent / "bin/check_router_ip"  # võtab deploy 2 taset üles praegusest failist
     # Kõik sisendid järjekorras
     inputs = [ "no",ip]
 
