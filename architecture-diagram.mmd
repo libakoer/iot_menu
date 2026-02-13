@@ -1,8 +1,12 @@
 graph TB
     subgraph TextualApp["Textual TUI App (app.py)"]
         AppClass["IotMenu<br/>(Main App)"]
-        BasicMenu["BasicMenu<br/>(Menus)"]
+        BasicMenu["BasicMenu<br/>(Main Navigation)"]
+        AdvancedMenu["AdvancedMenu<br/>(Advanced Tasks)"]
+        WifiMenu["WifiMenu<br/>(WiFi Setup)"]
         AppClass -->|renders| BasicMenu
+        AppClass -->|renders| AdvancedMenu
+        AppClass -->|renders| WifiMenu
     end
 
     subgraph Screens["Screens (Script Execution Layer)"]
@@ -16,11 +20,11 @@ graph TB
         
         BasicMenu -->|switch to| DeployScreen
         BasicMenu -->|switch to| AdoptScreen
-        BasicMenu -->|switch to| WifiSetupScreen
-        BasicMenu -->|switch to| OpenwrtScreen
         BasicMenu -->|switch to| SystemTemplateScreen
         BasicMenu -->|switch to| WebStarterScreen
         BasicMenu -->|switch to| APConfigScreen
+        AdvancedMenu -->|switch to| OpenwrtScreen
+        WifiMenu -->|switch to| WifiSetupScreen
     end
 
     subgraph ScriptLogic["Script Activation Logic"]
