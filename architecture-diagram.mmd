@@ -17,14 +17,31 @@ graph TB
         SystemTemplateScreen["SystemTemplate"]
         WebStarterScreen["WebStarter"]
         APConfigScreen["APConfiguratorScreen"]
+        NewFolderScreen["NewFolder"]
+        InitializeSerialScreen["InitializeSerial"]
+        WemosPreScreen["WemosPre"]
+        UpgradeScreen["UpgradeIot"]
+        OpenWrtRouterScreen["OpenWrtRouterIp"]
+        SuccessScreen["Success"]
+        FailedScreen["Failed"]
+        LoadingScreen["LoadingScreen"]
         
         BasicMenu -->|switch to| DeployScreen
         BasicMenu -->|switch to| AdoptScreen
         BasicMenu -->|switch to| SystemTemplateScreen
         BasicMenu -->|switch to| WebStarterScreen
         BasicMenu -->|switch to| APConfigScreen
+        BasicMenu -->|switch to| NewFolderScreen
         AdvancedMenu -->|switch to| OpenwrtScreen
+        AdvancedMenu -->|switch to| UpgradeScreen
+        AdvancedMenu -->|switch to| WemosPreScreen
+        AdvancedMenu -->|switch to| InitializeSerialScreen
         WifiMenu -->|switch to| WifiSetupScreen
+        OpenwrtScreen -->|leads to| OpenWrtRouterScreen
+        DeployScreen -->|success| SuccessScreen
+        DeployScreen -->|failure| FailedScreen
+        AdoptScreen -->|success| SuccessScreen
+        AdoptScreen -->|failure| FailedScreen
     end
 
     subgraph ScriptLogic["Script Activation Logic"]
@@ -33,12 +50,21 @@ graph TB
         WifiLogic["wifi_setup_systemconf_script.py"]
         OpenwrtLogic["open_wrt_setup_script.py"]
         FindRouterLogic["find_router_ip_logic.py"]
+        CreateSystemLogic["create_system_logic.py"]
+        CreateNodeLogic["new_node_script.py"]
+        UpgradeLogic["upgrade_iot_logic.py"]
+        PreFlashLogic["pre_flash_logic.py"]
         
         DeployScreen -->|imports| DeployLogic
         AdoptScreen -->|imports| AdoptLogic
         WifiSetupScreen -->|imports| WifiLogic
         OpenwrtScreen -->|imports| OpenwrtLogic
         OpenwrtScreen -->|imports| FindRouterLogic
+        SystemTemplateScreen -->|imports| CreateSystemLogic
+        NewFolderScreen -->|imports| CreateNodeLogic
+        UpgradeScreen -->|imports| UpgradeLogic
+        WemosPreScreen -->|imports| PreFlashLogic
+        InitializeSerialScreen -->|imports| AdoptLogic
     end
 
     subgraph ServeComponent["serve.py & Web Output Streaming"]
@@ -53,6 +79,21 @@ graph TB
         Serve -->|spawns| AppClass
     end
 
+    subgraph MessageSystem["Message System"]
+        WebOutputMsg["WebOutput<br/>(Log lines)"]
+        RefreshMsg["Refresh<br/>(Screen refresh)"]
+        DeploySuccessMsg["DeploySuccess<br/>(Deploy OK)"]
+        DeployFailedMsg["DeployFailed<br/>(Deploy error)"]
+        
+        DeployScreen -->|emits| DeploySuccessMsg
+        DeployScreen -->|emits| DeployFailedMsg
+        AdoptScreen -->|emits| DeploySuccessMsg
+        AdoptScreen -->|emits| DeployFailedMsg
+        WebStarterScreen -->|receives| WebOutputMsg
+        SuccessScreen -->|receives| DeploySuccessMsg
+        FailedScreen -->|receives| DeployFailedMsg
+    end
+
     subgraph BashScripts["Bash Scripts (bin/)"]
         WebStarterScript["web_starter"]
         CloudcmdStarter["cloudcmd_starter"]
@@ -63,6 +104,13 @@ graph TB
         AdoptScript["adopt"]
         CreateNodeScript["create_node_template"]
         CreateSystemScript["create_system_template"]
+        UpgradeScript["iot_upgrade"]
+        PreFlashNodMCU["pre_flash_nodemcu"]
+        PreFlashWemos["pre_flash_wemos"]
+        InitializeScript["initialize"]
+        SetupSystemconf["setup_systemconf"]
+        WifiOpenwrtSetup["wifi_openwrt_setup"]
+        FindRouterIp["check_router_ip"]
         
         WebStarterScript -->|launches| CloudcmdStarter
         WebStarterScript -->|launches| NodredStarter
@@ -120,9 +168,24 @@ graph TB
     %% Connections from Screens to Bash Scripts
     DeployScreen -->|subprocess| DeployScript
     AdoptScreen -->|subprocess| AdoptScript
-    WifiSetupScreen -->|subprocess| CreateSystemScript
+    InitializeSerialScreen -->|subprocess| InitializeScript
+    WifiSetupScreen -->|subprocess| SetupSystemconf
+    OpenwrtScreen -->|subprocess| WifiOpenwrtSetup
     SystemTemplateScreen -->|subprocess| CreateSystemScript
-    OpenwrtScreen -->|subprocess| WebStarterScript
+    NewFolderScreen -->|subprocess| CreateNodeScript
+    UpgradeScreen -->|subprocess| UpgradeScript
+    WemosPreScreen -->|subprocess| PreFlashWemos
+    
+    %% Script Logic to Bash Scripts
+    DeployLogic -->|calls| DeployScript
+    AdoptLogic -->|calls| AdoptScript
+    WifiLogic -->|calls| SetupSystemconf
+    OpenwrtLogic -->|calls| WifiOpenwrtSetup
+    FindRouterLogic -->|calls| FindRouterIp
+    CreateSystemLogic -->|calls| CreateSystemScript
+    CreateNodeLogic -->|calls| CreateNodeScript
+    UpgradeLogic -->|calls| UpgradeScript
+    PreFlashLogic -->|calls| PreFlashWemos
 
     %% Logging flow
     WebStarterScript -->|outputs stdout/stderr| AppClass
