@@ -4,7 +4,18 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from pathlib import Path
+import sys
+from pathlib import Path as _Path
 
+# Ensure `${workspace}/lib` is on `sys.path` so imports like
+# `import ap_configurator` resolve regardless of current working directory
+# (works when running the app from the repo root, from other folders, or
+# when launched by the debugger). Insert before importing ap_configurator.
+_REPO_LIB = _Path(__file__).resolve().parents[1]
+if str(_REPO_LIB) not in sys.path:
+    sys.path.insert(0, str(_REPO_LIB))
+
+import ap_configurator
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual import events, on
@@ -36,6 +47,7 @@ from messages.deploy_failed_message import DeployFailed
 from messages.web_output import WebOutput  # <-- sõnum logiridade jaoks
 
 from script_activation_logic.find_router_ip_logic import router_ip
+
 
 
 # --- Püsilogi faili asukoht (vajadusel muuda) ---
@@ -77,6 +89,7 @@ class IotMenu(App[None]):
             "new_system_template": lambda: SystemTemplate(self.current_path),
             "upgrade": lambda: UpgradeIot(),
             "web_starter": lambda: WebStarter(),
+            "ap_configurator": lambda: __import__("iot_menu_2.screens.ap_configurator_screen", fromlist=["APConfiguratorScreen"]).APConfiguratorScreen(),
         }
 
     # ---------------------------
@@ -202,7 +215,7 @@ class IotMenu(App[None]):
         self.pop_screen()
         self.push_screen(Failed(error.error, error.code))
 
-    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt,#wemos,#initialize,#new_system_template,#upgrade,#web_starter")
+    @on(Button.Pressed, "#deploy,#adopt,#folder,#wifi_conf,#openwrt,#wemos,#initialize,#new_system_template,#upgrade,#web_starter,#ap_configurator")
     def action_deployment_screen(self, event: Button.Pressed) -> None:
         screen_factory = self.SCREENS.get(event.button.id)
         if screen_factory:

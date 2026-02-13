@@ -10,4 +10,5 @@ class BasicMenu(VerticalScroll):
         yield Button("Create New Folder",id="folder")
         yield Button("Advanced", id="advanced")
         yield Button("Web starter",id="web_starter")
+        yield Button("AP Configurator", id="ap_configurator")
         yield Button("Exit", id="exit")
