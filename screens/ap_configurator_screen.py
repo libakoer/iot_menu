@@ -32,6 +32,7 @@ class APConfiguratorScreen(Screen):
         # Prevent the global "up" action (bound to Backspace) from
         # being executed while this screen is active.
         if event.key in ("backspace", "up"):
+            
             event.stop()
 
     def compose(self) -> ComposeResult:

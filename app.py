@@ -44,27 +44,27 @@ from menus.wifi_menu import WifiMenu
 from messages.refresh_screen import Refresh
 from messages.deploy_success_message import DeploySuccess
 from messages.deploy_failed_message import DeployFailed
-from messages.web_output import WebOutput  # <-- sõnum logiridade jaoks
+from messages.web_output import WebOutput  # <-- message carrier for log lines
 
 from script_activation_logic.find_router_ip_logic import router_ip
 
 
 
-# --- Püsilogi faili asukoht (vajadusel muuda) ---
+# --- Location of the persistent log file for the web starter
 LOG_PATH = Path("web_starter.log")
 
 
 class IotMenu(App[None]):
-    """
-    Textual-põhine failihaldur.
-    – Nooled liikumiseks
-    – Enter kataloogi laiendamiseks või sisenemiseks
-    – Backspace ülespoole liikumiseks
+    """Textual-based file manager.
+
+    - Arrow keys to move
+    - Enter to expand or enter a directory
+    - Backspace to go up
     """
     CSS_PATH = "tcss/iot_menu.tcss"
 
     BINDINGS = [
-        Binding("enter", "noop", "Expand or navigate directory", show=False),  # käsitletakse on_key-s
+        Binding("enter", "noop", "Expand or navigate directory", show=False),  # handled in on_key
         Binding("backspace", "up", "Go up", show=True),
     ]
 
@@ -72,12 +72,12 @@ class IotMenu(App[None]):
         super().__init__(**kwargs)
         self.current_path = Path(start_path or Path.cwd())
 
-        # Web starter taustahalduse olek App-i tasemel
+        # Web starter background process state at the App level
         self.web_starter: asyncio.subprocess.Process | None = None
         self.web_stream_task: asyncio.Task | None = None
-        self.web_log_buffer: deque[str] = deque(maxlen=5000)  # hoiame viimased N rida
+        self.web_log_buffer: deque[str] = deque(maxlen=5000)  # keep last N lines
 
-        # SCREENS – teeme tehased, et saaks vajadusel current_path kaasa anda
+        # SCREENS - create factories so `current_path` can be passed when needed
         self.SCREENS = {
             "deploy": lambda: DeployScreen(self.current_path),
             "adopt": lambda: AdoptScreen(self.current_path),
@@ -93,10 +93,10 @@ class IotMenu(App[None]):
         }
 
     # ---------------------------
-    # Logiajaloo laadimine käivitumisel
+    # Load log history at startup
     # ---------------------------
     def load_log_history(self, max_lines: int = 1000) -> None:
-        """Lae varasem logi failist bufferisse (viimased N rida)."""
+        """Load previous log lines from the file into the buffer (last N lines)."""
         try:
             if LOG_PATH.exists():
                 lines = LOG_PATH.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -104,18 +104,18 @@ class IotMenu(App[None]):
                 for line in lines[-max_lines:]:
                     self.web_log_buffer.append(line)
         except Exception as e:
-            # ei tohi app-i käivitust katkestada; soovi korral logi console'isse
+            # Must not abort app startup; optionally log to console
             self.log(f"Failed to load log history: {e}")
 
     # ---------------------------
     # Web starter: start/stop + stream
     # ---------------------------
     async def start_web_starter(self) -> None:
-        """Käivita web starter (kui veel ei tööta) ja alusta stdout-i lugemist App-i tasemel."""
+        """Start the web starter (if not already running) and stream stdout at the App level."""
         if self.web_starter is not None and self.web_starter.returncode is None:
-            return  # juba töötab
+            return  # already running
 
-        # Käivita protsess
+        # Launch the process
         self.web_starter = await asyncio.create_subprocess_exec(
             "web_starter",
             stdout=asyncio.subprocess.PIPE,
@@ -123,7 +123,7 @@ class IotMenu(App[None]):
             # cwd=str(self.current_path),  # vajadusel aktiveeri
         )
 
-        # Logi "launched" nii bufferisse kui ka faili + saada eventi kaudu ekraanidele
+        # Log "launched" into buffer and file + send event to screens
         start_msg = f"Web starter launched (PID={self.web_starter.pid})"
         self._append_log_line(start_msg, emit=True)
 
@@ -134,14 +134,14 @@ class IotMenu(App[None]):
                     line = raw.decode(errors="replace").rstrip()
                     self._append_log_line(line, emit=True)
             except asyncio.CancelledError:
-                # Oodatud, kui peatame streami
+                # Expected when the stream is stopped
                 pass
 
         self.web_stream_task = asyncio.create_task(_stream())
 
     async def stop_backend(self) -> None:
-        """Peata stream ja protsess. Kasuta ainult Stop nupul või rakendusest väljumisel."""
-        # 1) lõpeta streami lugemine
+        """Stop the stream and process. Use only from Stop button or on app exit."""
+        # 1) stop reading the stream
         if self.web_stream_task and not self.web_stream_task.done():
             self.web_stream_task.cancel()
             try:
@@ -150,7 +150,7 @@ class IotMenu(App[None]):
                 pass
         self.web_stream_task = None
 
-        # 2) lõpeta protsess
+        # 2) end the process
         proc = self.web_starter
         if proc and proc.returncode is None:
             proc.terminate()
@@ -160,17 +160,16 @@ class IotMenu(App[None]):
                 proc.kill()
                 await proc.wait()
 
-            # kirjelda peatust nii faili kui bufferisse
+            # record stop both in file and buffer
             self._append_log_line("Web starter stopped", emit=True)
 
         self.web_starter = None
 
     def _append_log_line(self, line: str, *, emit: bool = False) -> None:
-    
-    # 1) mällu
+        # 1) in-memory
         self.web_log_buffer.append(line)
 
-        # 2) faili (append)
+        # 2) to file (append)
         try:
             LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
             with LOG_PATH.open("a", encoding="utf-8", errors="replace") as f:
@@ -178,11 +177,11 @@ class IotMenu(App[None]):
         except Exception as e:
             self.log(f"Failed writing log: {e}")
 
-        # 3) saada sõnum aktiivsele ekraanile (kui ekraan seda kuulab)
+        # 3) send message to active screen (if it listens)
         if emit:
-            # NB: App->Screen suunal tuleb sihtida just Screen'i, mitte App'i
+            # Note: when sending App->Screen target the Screen, not the App
             self.call_later(lambda: self.screen.post_message(WebOutput(line)))
-            # Kui soovid broadcasti kõikidele ekraanidele, kasuta:
+            # If you want to broadcast to all screens, use:
             # self.call_later(lambda: [scr.post_message(WebOutput(line)) for scr in list(self.screen_stack)])
 
     # ---------------------------
@@ -198,7 +197,7 @@ class IotMenu(App[None]):
         yield Footer()
 
     # ---------------------------
-    # Sõnumid/ekraanivahetused
+    # Messages / screen transitions
     # ---------------------------
     @on(DeploySuccess)
     def sucess_page(self, message: DeploySuccess) -> None:
@@ -263,10 +262,10 @@ class IotMenu(App[None]):
         self.push_screen(OpenWrtRouterIp(info, self.current_path))
 
     # ---------------------------
-    # Failipuu / navigeerimine
+    # File tree / navigation
     # ---------------------------
     def on_mount(self) -> None:
-        # lae ajaloolised logid enne kui kasutaja avab WebStarter ekraani
+        # load historical logs before the user opens the WebStarter screen
         self.load_log_history(max_lines=1000)
 
         self.dir_tree = self.query_one("#dir_tree", DirectoryTree)
@@ -292,7 +291,7 @@ class IotMenu(App[None]):
             self._load_path(parent)
 
     def _load_path(self, path: Path) -> None:
-        """Lae etteantud kataloog."""
+        """Load the given directory."""
         self.current_path = path
         self.path_display.update(f"Current Path: {self.current_path}")
         self.dir_tree.path = self.current_path

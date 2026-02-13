@@ -46,7 +46,7 @@ class AdoptScreen(Screen):
             )
 
     def show_page(self, start: int):
-        """Kuva 5 node'i korraga + nupud More/Previous/Back."""
+        """Show 5 nodes at a time + More/Previous/Back buttons."""
         menu = self.query_one("#menu", ListView)
         menu.clear()
         self.start_index = start
@@ -57,7 +57,7 @@ class AdoptScreen(Screen):
             menu.append(ListItem(Label(label)))
             counter += 1
 
-        # lisa More
+        # add More
         if start + self.max_entries < len(self.nodes):
             menu.append(ListItem(Label("More nodes (M)")))
         # lisa Previous
@@ -71,7 +71,7 @@ class AdoptScreen(Screen):
         text = str(label)
 
         if text.startswith("node "):
-            selection = text.split(" ")[1]  # võtab node id
+            selection = text.split(" ")[1]  # take node id
             adopt_node(selection)
             self.app.pop_screen()
         elif text.startswith("More"):

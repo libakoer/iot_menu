@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 class Failed(Screen):
     def __init__(self, error: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.error = error  # hoia sõnum klassi sees
+        self.error = error  # store the error message in the instance
         self.code=1
     def compose(self) -> ComposeResult:
         yield Label("Failed")

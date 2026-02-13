@@ -4,10 +4,10 @@ from pathlib import Path
 def router_deploy(path: Path, ssid, password, retry, ip, gateway):
     script = Path(__file__).parent.parent.parent.parent / "bin/wifi_setup_systemconf"
 
-    # Kõik sisendid järjekorras
-    inputs = ["yes",ssid, password, retry, "yes", gateway, ip]
+    # All inputs in order
+    inputs = ["yes", ssid, password, retry, "yes", gateway, ip]
 
-    # Sisendi string ühe korraga
+    # Compose input string at once
     input_data = "\n".join(inputs) + "\n"
 
     process = subprocess.Popen(
@@ -20,14 +20,14 @@ def router_deploy(path: Path, ssid, password, retry, ip, gateway):
         bufsize=1
     )
 
-    # Kirjuta kogu sisend
+    # Write the entire input
     try:
         process.stdin.write(input_data)
         process.stdin.flush()
     except BrokenPipeError:
-        print("Skript lõpetas enne, kui kõik sisendid jõudsid")
+        print("Script terminated before all inputs were consumed")
 
-    # Reaalajas stdout ja stderr lugemine
+    # Read stdout and stderr in real time
     stdout_lines = []
     stderr_lines = []
 

@@ -13,9 +13,10 @@ from messages.web_output import WebOutput
 
 
 class WebStarter(Screen):
-    """
-    Ekraan, mis näitab web starteri olekut ja logi.
-    Protsess ise jookseb App-i tasemel. Ekraan võib tulla ja minna.
+    """Screen that shows the web starter status and log.
+
+    The process itself runs at the App level. The screen may be mounted
+    and unmounted independently.
     """
 
     def __init__(self, **kwargs):
@@ -37,7 +38,7 @@ class WebStarter(Screen):
         )
 
     async def on_mount(self) -> None:
-        """Taasesita buffer ja kuva hetkestaatus ekraani avamisel."""
+        """Replay the buffer and show current status when the screen opens."""
         app = self.app
         running = app.web_starter is not None and app.web_starter.returncode is None
         self.status_label.update("Status: Running ✅" if running else "Status: Stopped ❌")
@@ -54,7 +55,7 @@ class WebStarter(Screen):
         if event.button.id == "start":
             try:
                 await app.start_web_starter()
-                # Uuenda olekut
+                # Update status
                 running = app.web_starter is not None and app.web_starter.returncode is None
                 self.status_label.update("Status: Running ✅" if running else "Status: Stopped ❌")
 
@@ -64,18 +65,18 @@ class WebStarter(Screen):
                 else:
                     self.log_widget.write_line("Web starter did not start.")
             except Exception:
-                # Kui käivitus ebaõnnestus (nt pole IoT keskkonnas)
+                # If startup failed (e.g., not in IoTempower environment)
                 self.post_message(DeployFailed("You're not in IoT", 4))
             finally:
-                event.stop()  # Ära lase sündmusel mullitada App-i tasemele
+                event.stop()  # Stop event from bubbling to the App level
 
         
         elif event.button.id == "stop":
-            # väldi korduvat stop'i
+            # avoid repeated stop calls
             if self._stopping:
                 event.stop(); return
             self._stopping = True
-            # Stop ei tohi logi/ekraaniga võidu rabeleda; stopib vaid backend'i
+            # Stop should not race with the log/screen; it only stops the backend
             try:
                 await app.stop_backend()
                 self.status_label.update("Status: Stopped ❌")
@@ -87,11 +88,11 @@ class WebStarter(Screen):
 
         
         elif event.button.id == "pop":
-            # --- DEBOUNCE / LOCK: ainult 1 pop ---
+            # --- DEBOUNCE / LOCK: only 1 pop ---
             if self._popping:
                 event.stop(); return
             self._popping = True
-            # keelame nupu, et kasutaja ei saaks topeltklikkida
+            # disable the button to prevent double-clicks
             try:
                 self.query_one("#pop", Button).disabled = True
             except Exception:
@@ -100,7 +101,7 @@ class WebStarter(Screen):
             try:
                 self.app.pop_screen()
             except Exception:
-                # igaks juhuks neelame, kui virnas enam ei ole mida poppida
+                # ignore if there's nothing left to pop on the stack
                 pass
             finally:
                 event.stop()
@@ -109,6 +110,6 @@ class WebStarter(Screen):
 
     @on(WebOutput)
     def _on_web_output(self, msg: WebOutput) -> None:
-        """Lisa saabuv logirida logi vidinasse, kui ekraan on aktiivne."""
+        """Append incoming log line to the log widget if the screen is active."""
         if self.is_mounted:
             self.log_widget.write_line(msg.line)
